@@ -14,8 +14,8 @@ class AuthService extends ChangeNotifier {
   final storage = new FlutterSecureStorage();
 
 
-  // Si retornamos algo, es un error, si no, todo bien!
-  Future<String?> createUser( String email, String password ) async {
+  // Si retornamos algo, es un error, si no, todo bien! :)
+  Future<String?> createUser(List<String>fotos, String email, String password ) async {
 
     final Map<String, dynamic> authData = {
       'email': email,
@@ -30,6 +30,14 @@ class AuthService extends ChangeNotifier {
     final resp = await http.post(url, body: json.encode(authData));
     final Map<String, dynamic> decodedResp = json.decode( resp.body );
 
+    // * GUARDAR LAS FOTOS DEL USER NUEVO
+    try {
+      var respuesta = await registrarFotos(fotos, email);
+    }catch(e){
+      print('ocurrió un error al subir las fotos ${e.toString()}');
+    }
+
+
     if ( decodedResp.containsKey('idToken') ) {
         // Token hay que guardarlo en un lugar seguro
         await storage.write(key: 'token', value: decodedResp['idToken']);
@@ -39,6 +47,36 @@ class AuthService extends ChangeNotifier {
       return decodedResp['error']['message'];
     }
 
+  }
+
+
+  Future<String> registrarFotos(List<String>fotos, String email) async {
+    String urlBase='';
+    //create multipart request for POST or PATCH method
+    var request =
+    http.MultipartRequest("POST", Uri.parse("$urlBase/api/subirFile"));
+
+    //add text fields
+    //request.fields["hijoId"] = "1";
+    request.fields["email"] = email;
+    //request.fields["password"] = password;
+
+    //create multipart using filepath, string or bytes
+    var foto1 = await http.MultipartFile.fromPath("foto1", fotos[0]);
+    var foto2 = await http.MultipartFile.fromPath("foto2", fotos[1]);
+    var foto3 = await http.MultipartFile.fromPath("foto3", fotos[2]);
+
+    //add multipart to request
+    request.files.add(foto1);
+    request.files.add(foto2);
+    request.files.add(foto3);
+    var response = await request.send();
+
+    //Get the response from the server
+    var responseData = await response.stream.toBytes();
+    var responseString = String.fromCharCodes(responseData);
+    print('responseString: $responseString');
+    return responseString;
   }
 
     Future<String?> login( String email, String password ) async {
@@ -77,6 +115,9 @@ class AuthService extends ChangeNotifier {
     return await storage.read(key: 'token') ?? '';
 
   }
+
+
+
 
 
 

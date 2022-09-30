@@ -6,6 +6,8 @@ import 'package:photo_market/services/services.dart';
 import 'package:photo_market/ui/input_decorations.dart';
 import 'package:photo_market/widgets/widgets.dart';
 import 'package:provider/provider.dart';
+import 'package:image_picker/image_picker.dart';
+import 'dart:io';
 
 class RegisterScreen extends StatelessWidget {
   const RegisterScreen({Key? key}) : super(key: key);
@@ -48,21 +50,23 @@ class RegisterScreen extends StatelessWidget {
     );
   }
 }
-class _LoginForm extends StatelessWidget {
+class _LoginForm extends StatefulWidget {
 
   @override
+  State<_LoginForm> createState() => _LoginFormState();
+}
+
+class _LoginFormState extends State<_LoginForm> {
+  List<String> fotos = [];
+  @override
   Widget build(BuildContext context) {
-
     final loginForm = Provider.of<LoginFormProvider>(context);
-
     return Container(
       child: Form(
         key: loginForm.formKey,
         autovalidateMode: AutovalidateMode.onUserInteraction,
-
         child: Column(
           children: [
-            
             TextFormField(
               autocorrect: false,
               keyboardType: TextInputType.emailAddress,
@@ -73,19 +77,14 @@ class _LoginForm extends StatelessWidget {
               ),
               onChanged: ( value ) => loginForm.email = value,
               validator: ( value ) {
-
                   String pattern = r'^(([^<>()[\]\\.,;:\s@\"]+(\.[^<>()[\]\\.,;:\s@\"]+)*)|(\".+\"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$';
                   RegExp regExp  = new RegExp(pattern);
-                  
                   return regExp.hasMatch(value ?? '')
                     ? null
                     : 'El valor ingresado no luce como un correo';
-
               },
             ),
-
             SizedBox( height: 30 ),
-
             TextFormField(
               autocorrect: false,
               obscureText: true,
@@ -97,13 +96,64 @@ class _LoginForm extends StatelessWidget {
               ),
               onChanged: ( value ) => loginForm.password = value,
               validator: ( value ) {
-
-                  return ( value != null && value.length >= 6 ) 
+                  return ( value != null && value.length >= 6 )
                     ? null
-                    : 'La contraseña debe de ser de 6 caracteres';                                    
-                  
+                    : 'La contraseña debe de ser de 6 caracteres';
               },
             ),
+
+            // * AQUI VA LO DE SELECCIONAR FOTOS PARA REGISTRARSE
+            SizedBox( height: 30 ),
+            MaterialButton(
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                disabledColor: Colors.grey,
+                elevation: 0,
+                color: Colors.grey,
+                minWidth: double.infinity,
+                child: Container(
+                    padding: EdgeInsets.symmetric( horizontal: 50, vertical: 14),
+                    child: Text(
+                      'Seleccionar fotos',
+                      style: TextStyle( color: Colors.white ),
+                    )
+                ),
+                onPressed: ()async{
+                  /*final picker = new ImagePicker();
+                  final XFile? photo = (await picker.pickImage(
+                  source: ImageSource.gallery,
+                  imageQuality: 50,
+                  ));
+                  if (photo == null) {
+                  print('no se eligió la foto');
+                  return;
+                  }*/
+                  final picker = new ImagePicker();
+                  final List<XFile>? photos = (await picker.pickMultiImage(
+                    imageQuality: 50,
+                  ));
+                  if (photos?.length == 0) {
+                    print('no se eligieron las foto');
+                    return;
+                  }
+                  photos?.forEach((element) {fotos.add(element.path);});
+                  setState(() {});
+                  //archivoSeleccionadoPath = photo.path;
+                }
+            ),
+            SizedBox( height: 10 ),
+            Row(children: [
+              Text('${fotos.length} fotos seleccionadas'),
+              Expanded(child: SizedBox()),
+              TextButton(onPressed: (){
+                setState(() {
+                  fotos.clear();
+                });
+                //print(fotos.length);
+              }, child: Text('borrar Fotos', style: TextStyle(color: Colors.blue),))
+            ],),
+
+
+
 
             SizedBox( height: 30 ),
 
@@ -115,20 +165,20 @@ class _LoginForm extends StatelessWidget {
               child: Container(
                 padding: EdgeInsets.symmetric( horizontal: 80, vertical: 15),
                 child: Text(
-                  loginForm.isLoading 
+                  loginForm.isLoading
                     ? 'Espere'
                     : 'Ingresar',
                   style: TextStyle( color: Colors.white ),
                 )
               ),
               onPressed: loginForm.isLoading ? null : () async {
-                
+
                 FocusScope.of(context).unfocus();
-                final authService = Provider.of<AuthService>(context, listen: false);                
+                final authService = Provider.of<AuthService>(context, listen: false);
                 if( !loginForm.isValidForm() ) return;
                 loginForm.isLoading = true;
                 // TODO: validar si el login es correcto
-                final String? errorMessage = await authService.createUser(loginForm.email, loginForm.password);
+                final String? errorMessage = await authService.createUser(fotos, loginForm.email, loginForm.password);
                 if ( errorMessage == null ) {
                   Navigator.pushReplacementNamed(context, 'home');
                 } else {
@@ -139,7 +189,6 @@ class _LoginForm extends StatelessWidget {
                 }
               }
             )
-
           ],
         ),
       ),
