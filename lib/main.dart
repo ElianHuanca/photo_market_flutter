@@ -1,26 +1,50 @@
+// ignore_for_file: prefer_const_constructors, avoid_unnecessary_containers
 import 'package:flutter/material.dart';
 import 'package:photo_market/screens/screens.dart';
+import 'package:photo_market/services/services.dart';
+import 'package:provider/provider.dart';
 
-void main() => runApp(const MyApp());
+void main() => runApp(AppState());
+
+class AppState extends StatelessWidget {
+
+  @override
+  Widget build(BuildContext context) {
+    return MultiProvider(
+      providers: [
+        ChangeNotifierProvider(create: ( _ ) => AuthService() ),      
+      ],
+      child: MyApp(),
+    );
+  }
+}
+
 
 class MyApp extends StatelessWidget {
-  const MyApp({super.key});
-
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
       debugShowCheckedModeBanner: false,
-      title: 'Photo Market',
-      initialRoute: 'home',
-      routes: {
-        'home': (_) => HomeScreen(),
+      title: 'Productos App',
+      initialRoute: 'checking',
+      routes: {    
+        'checking': ( _ ) => CheckAuthScreen(),
+        'home'    : ( _ ) => HomeScreen(),      
+        'login'   : ( _ ) => LoginScreen(),
+        'register': ( _ ) => RegisterScreen(),
       },
-      //scaffoldMessengerKey: NotificationsService.messengerKey,
+      scaffoldMessengerKey: NotificationsService.messengerKey,
       theme: ThemeData.light().copyWith(
-          scaffoldBackgroundColor: Colors.grey[300],
-          appBarTheme: const AppBarTheme(elevation: 0, color: Colors.indigo),
-          floatingActionButtonTheme: const FloatingActionButtonThemeData(
-              backgroundColor: Colors.indigo, elevation: 0)),
+        scaffoldBackgroundColor: Colors.grey[300],
+        appBarTheme: AppBarTheme(
+          elevation: 0,
+          color: Colors.indigo
+        ),
+        floatingActionButtonTheme: FloatingActionButtonThemeData(
+          backgroundColor: Colors.indigo,
+          elevation: 0
+        )
+      ),
     );
   }
 }
