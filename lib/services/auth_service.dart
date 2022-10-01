@@ -5,56 +5,60 @@ import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 
 import 'package:http/http.dart' as http;
 
-
 class AuthService extends ChangeNotifier {
-
   final String _baseUrl = 'identitytoolkit.googleapis.com';
   final String _firebaseToken = 'AIzaSyA-fYv6FgTePKWrh0U5TcV-F6Br_J-BUzc';
 
   final storage = new FlutterSecureStorage();
 
-
   // Si retornamos algo, es un error, si no, todo bien! :)
-  Future<String?> createUser(List<String>fotos, String email, String password ) async {
-
+  Future<String?> createUser (
+      List<String> fotos, String email, String password) async {
     final Map<String, dynamic> authData = {
       'email': email,
       'password': password,
-      'returnSecureToken': true
     };
 
-    final url = Uri.https(_baseUrl, '/v1/accounts:signUp', {
-      'key': _firebaseToken
-    });
+    final url =
+        Uri.https(_baseUrl, '/v1/accounts:signUp', {'key': _firebaseToken});
 
     final resp = await http.post(url, body: json.encode(authData));
-    final Map<String, dynamic> decodedResp = json.decode( resp.body );
+    final Map<String, dynamic> decodedResp = json.decode(resp.body);
 
     // * GUARDAR LAS FOTOS DEL USER NUEVO
+    
     try {
+      await registerLaravel(email, password);
       var respuesta = await registrarFotos(fotos, email);
-    }catch(e){
+    } catch (e) {
       print('ocurrió un error al subir las fotos ${e.toString()}');
     }
 
-
-    if ( decodedResp.containsKey('idToken') ) {
-        // Token hay que guardarlo en un lugar seguro
-        await storage.write(key: 'token', value: decodedResp['idToken']);
-        // decodedResp['idToken'];
-        return null;
+    if (decodedResp.containsKey('idToken')) {
+      // Token hay que guardarlo en un lugar seguro
+      await storage.write(key: 'token', value: decodedResp['idToken']);
+      // decodedResp['idToken'];
+      return null;
     } else {
       return decodedResp['error']['message'];
     }
-
   }
 
+  Future registerLaravel(String email, String password) async {
+    var response = await http.post(
+        Uri.parse('http://192.168.100.234/sw-photo/public/api/register'),
+        body: ({
+          'email': email,
+          'password': password,
+        }));
+    print('Se Registro bien');
+  }
 
-  Future<String> registrarFotos(List<String>fotos, String email) async {
-    String urlBase='';
+  Future<String> registrarFotos(List<String> fotos, String email) async {
+    String urlBase = 'http://192.168.100.234/sw-photo/public';
     //create multipart request for POST or PATCH method
     var request =
-    http.MultipartRequest("POST", Uri.parse("$urlBase/api/subirFile"));
+        http.MultipartRequest("POST", Uri.parse("$urlBase/api/userPhothos"));
 
     //add text fields
     //request.fields["hijoId"] = "1";
@@ -79,30 +83,27 @@ class AuthService extends ChangeNotifier {
     return responseString;
   }
 
-    Future<String?> login( String email, String password ) async {
-
+  Future<String?> login(String email, String password) async {
     final Map<String, dynamic> authData = {
       'email': email,
       'password': password,
-      'returnSecureToken': true
+      //'returnSecureToken': true
     };
 
-    final url = Uri.https(_baseUrl, '/v1/accounts:signInWithPassword', {
-      'key': _firebaseToken
-    });
+    final url = Uri.https(
+        _baseUrl, '/v1/accounts:signInWithPassword', {'key': _firebaseToken});
 
     final resp = await http.post(url, body: json.encode(authData));
-    final Map<String, dynamic> decodedResp = json.decode( resp.body );
+    final Map<String, dynamic> decodedResp = json.decode(resp.body);
 
-    if ( decodedResp.containsKey('idToken') ) {
-        // Token hay que guardarlo en un lugar seguro
-        // decodedResp['idToken'];
-        await storage.write(key: 'token', value: decodedResp['idToken']);
-        return null;
+    if (decodedResp.containsKey('idToken')) {
+      // Token hay que guardarlo en un lugar seguro
+      // decodedResp['idToken'];
+      await storage.write(key: 'token', value: decodedResp['idToken']);
+      return null;
     } else {
       return decodedResp['error']['message'];
     }
-
   }
 
   Future logout() async {
@@ -111,14 +112,6 @@ class AuthService extends ChangeNotifier {
   }
 
   Future<String> readToken() async {
-
     return await storage.read(key: 'token') ?? '';
-
   }
-
-
-
-
-
-
 }
