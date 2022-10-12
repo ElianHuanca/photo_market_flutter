@@ -1,4 +1,4 @@
-// ignore_for_file: use_key_in_widget_constructors, curly_braces_in_flow_control_structures, prefer_const_constructors
+// ignore_for_file: use_key_in_widget_constructors, curly_braces_in_flow_control_structures, prefer_const_constructors, use_build_context_synchronously
 
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
@@ -25,7 +25,10 @@ class CheckAuthScreen extends StatelessWidget {
                 );
               });
             } else {
-              Future.microtask(() {
+              Future.microtask(() async{                
+                final email=await authService.readEmail();
+                final password=await authService.readPassword();
+                await authService.loginLaravel(email, password);
                 Navigator.pushReplacement(context, PageRouteBuilder(
                   pageBuilder: ( _, __ , ___ ) => HomeScreen(),
                   transitionDuration: Duration( seconds: 0)
