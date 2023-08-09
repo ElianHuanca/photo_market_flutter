@@ -5,6 +5,7 @@ import 'package:flutter/cupertino.dart';
 import 'package:photo_market/models/models.dart';
 import 'package:http/http.dart' as http;
 import 'package:photo_market/services/services.dart';
+import 'package:photo_market/const/const.dart';
 
 class EventoService extends ChangeNotifier {
   final List<EventoModel> eventos = [];
@@ -26,7 +27,7 @@ class EventoService extends ChangeNotifier {
     this.isLoading = true;
     notifyListeners();
     final response = await http.get(Uri.parse(
-        'http://192.168.100.235/sw-photo/public/api/getEventoParticipante/${user.id}'));
+        '$baseUrl/getEventoParticipante/${user.id}'));
     if (!response.body.contains('message')) {
       final List<dynamic> disList = json.decode(response.body);
       for (var element in disList) {

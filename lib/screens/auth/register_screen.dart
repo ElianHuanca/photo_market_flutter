@@ -47,7 +47,8 @@ class RegisterScreen extends StatelessWidget {
     )));
   }
 }
-class _LoginForm extends StatelessWidget {
+
+class _LoginForm extends StatefulWidget {
   State<_LoginForm> createState() => _LoginFormState();
 }
 
@@ -98,78 +99,87 @@ class _LoginFormState extends State<_LoginForm> {
             ),
 
             // * AQUI VA LO DE SELECCIONAR FOTOS PARA REGISTRARSE
-            SizedBox( height: 30 ),
+            SizedBox(height: 30),
             MaterialButton(
-                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(10)),
                 disabledColor: Colors.grey,
                 elevation: 0,
                 color: Colors.grey,
                 minWidth: double.infinity,
                 child: Container(
-                    padding: EdgeInsets.symmetric( horizontal: 50, vertical: 14),
+                    padding: EdgeInsets.symmetric(horizontal: 50, vertical: 14),
                     child: Text(
-                      'Seleccionar fotos',
-                      style: TextStyle( color: Colors.white ),
-                    )
-                ),
-                onPressed: ()async{
+                      'Seleccionar foto',
+                      style: TextStyle(color: Colors.white),
+                    )),
+                onPressed: () async {
                   final picker = new ImagePicker();
                   final List<XFile>? photos = (await picker.pickMultiImage(
                     imageQuality: 50,
                   ));
                   if (photos?.length == 0) {
-                    print('no se eligieron las foto');
+                    print('no se eligieron la foto');
                     return;
                   }
-                  photos?.forEach((element) {fotos.add(element.path);});
+                  photos?.forEach((element) {
+                    fotos.add(element.path);
+                  });
                   setState(() {});
                   //archivoSeleccionadoPath = photo.path;
-                }
+                }),
+            SizedBox(height: 10),
+            Row(
+              children: [
+                Text('${fotos.length} fotos seleccionadas'),
+                Expanded(child: SizedBox()),
+                TextButton(
+                    onPressed: () {
+                      setState(() {
+                        fotos.clear();
+                      });
+                      //print(fotos.length);
+                    },
+                    child: Text(
+                      'borrar',
+                      style: TextStyle(color: Colors.blue),
+                    ))
+              ],
             ),
-            SizedBox( height: 10 ),
-            Row(children: [
-              Text('${fotos.length} fotos seleccionadas'),
-              Expanded(child: SizedBox()),
-              TextButton(onPressed: (){
-                setState(() {
-                  fotos.clear();
-                });
-                //print(fotos.length);
-              }, child: Text('borrar Fotos', style: TextStyle(color: Colors.blue),))
-            ],),
-            SizedBox( height: 30 ),
+            SizedBox(height: 30),
             MaterialButton(
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
-              disabledColor: Colors.grey,
-              elevation: 0,
-              color: Colors.deepPurple,
-              child: Container(
-                padding: EdgeInsets.symmetric( horizontal: 80, vertical: 15),
-                child: Text(
-                  loginForm.isLoading
-                    ? 'Espere'
-                    : 'Ingresar',
-                  style: TextStyle( color: Colors.white ),
-                )
-              ),
-              onPressed: loginForm.isLoading ? null : () async {
-
-                FocusScope.of(context).unfocus();
-                final authService = Provider.of<AuthService>(context, listen: false);
-                if( !loginForm.isValidForm() ) return;
-                loginForm.isLoading = true;
-                // TODO: validar si el login es correcto
-                final String? errorMessage = await authService.createUser(fotos, loginForm.email, loginForm.password);
-                if ( errorMessage == null ) {
-                  Navigator.pushReplacementNamed(context, 'home');
-                } else {
-                  // TODO: mostrar error en pantalla
-                  //print( errorMessage );
-                  NotificationsService.showSnackbar(errorMessage);
-                  loginForm.isLoading = false;
-                }
-              }
-            )
+                shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(10)),
+                disabledColor: Colors.grey,
+                elevation: 0,
+                color: Colors.deepPurple,
+                child: Container(
+                    padding: EdgeInsets.symmetric(horizontal: 80, vertical: 15),
+                    child: Text(
+                      loginForm.isLoading ? 'Espere' : 'Ingresar',
+                      style: TextStyle(color: Colors.white),
+                    )),
+                onPressed: loginForm.isLoading
+                    ? null
+                    : () async {
+                        FocusScope.of(context).unfocus();
+                        final authService =
+                            Provider.of<AuthService>(context, listen: false);
+                        if (!loginForm.isValidForm() ) return;
+                        loginForm.isLoading = true;
+                        // TODO: validar si el login es correcto
+                        final String? errorMessage =
+                            await authService.createUser(
+                                fotos, loginForm.email, loginForm.password);
+                        if (errorMessage == null) {
+                          Navigator.pushReplacementNamed(context, 'home');
+                        } else {
+                          // TODO: mostrar error en pantalla
+                          //print( errorMessage );
+                          NotificationsService.showSnackbar(errorMessage);
+                          loginForm.isLoading = false;
+                        }
+                      })
           ],
         ),
       ),

@@ -36,6 +36,14 @@ class CardEvent extends StatelessWidget {
                   letterSpacing: -1),
             ),
             const SizedBox(height: 12),
+            Text(
+              'Lugar:${event.lugar}',
+              style: TextStyle(
+                  fontSize: 24,
+                  color: Colors.black54,
+                  fontWeight: FontWeight.bold,
+                  letterSpacing: -1),
+            ),
           ],
         ),
       ),

@@ -1,9 +1,14 @@
+// ignore_for_file: use_build_context_synchronously
+
 import 'dart:io';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:photo_market/bloc/pagar/pagar_bloc.dart';
+import 'package:photo_market/services/auth_service.dart';
+import 'package:photo_market/services/fotoService.dart';
+import 'package:photo_market/services/foto_service.dart';
 
 class TotalPayButton extends StatelessWidget {
   @override
@@ -71,6 +76,10 @@ class _BtnPay extends StatelessWidget {
           ],
         ),
         onPressed: () async {
+          final foto = PhotoService.selectFoto;
+          final user = AuthService.user;
+          await PhotoService.comprar(user?.id, foto.id);
+          Navigator.pushReplacementNamed(context, 'home');
           /*
         mostrarLoading(context); 
         final stripeService = new StripeService();
